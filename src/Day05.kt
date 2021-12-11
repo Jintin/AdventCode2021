@@ -2,7 +2,7 @@ import java.lang.Integer.max
 import java.lang.Integer.min
 import kotlin.math.abs
 
-fun getData(input: List<String>): List<List<List<Int>>> {
+private fun getData(input: List<String>): List<List<List<Int>>> {
     return input.map { raw ->
         raw.split(" -> ").map { pair ->
             pair.split(",").map(String::toInt)
