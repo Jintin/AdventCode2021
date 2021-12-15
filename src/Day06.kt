@@ -1,5 +1,5 @@
 
-fun count(input: List<String>, round: Int): Long {
+private fun count(input: List<String>, round: Int): Long {
     var map = input[0].split(",")
         .groupingBy { it.toInt() }
         .eachCount()
