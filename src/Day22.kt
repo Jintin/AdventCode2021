@@ -3,7 +3,7 @@ import kotlin.math.min
 
 fun main() {
     fun part1(input: List<String>): Long {
-        val scope = Region(listOf(-50, 50), listOf(-50, 50), listOf(-50, 50), false)
+        val scope = Region(IntRange(-50, 50), IntRange(-50, 50), IntRange(-50, 50), false)
         val regions = getRegions(input).mapNotNull { it.clip(scope) }
         val list = mutableListOf<Region>()
         regions.forEach(list::join)
@@ -25,22 +25,21 @@ fun main() {
     println(part2(input))
 }
 
+private fun IntRange.length(): Int = last - first + 1
+
 private data class Region(
-    val x: List<Int>,
-    val y: List<Int>,
-    val z: List<Int>,
+    val x: IntRange,
+    val y: IntRange,
+    val z: IntRange,
     var light: Boolean
 ) {
-    fun count(): Long = (if (light) 1 else -1L) *
-            (x[1] - x[0] + 1) *
-            (y[1] - y[0] + 1) *
-            (z[1] - z[0] + 1)
+    fun count(): Long = (if (light) 1 else -1L) * x.length() * y.length() * z.length()
 
     fun clip(region: Region): Region? {
-        val newX = listOf(max(region.x[0], x[0]), min(region.x[1], x[1]))
-        val newY = listOf(max(region.y[0], y[0]), min(region.y[1], y[1]))
-        val newZ = listOf(max(region.z[0], z[0]), min(region.z[1], z[1]))
-        if (newX[1] < newX[0] || newY[1] < newY[0] || newZ[1] < newZ[0]) {
+        val newX = IntRange(max(region.x.first, x.first), min(region.x.last, x.last))
+        val newY = IntRange(max(region.y.first, y.first), min(region.y.last, y.last))
+        val newZ = IntRange(max(region.z.first, z.first), min(region.z.last, z.last))
+        if (newX.last < newX.first || newY.last < newY.first || newZ.last < newZ.first) {
             return null
         }
 
@@ -50,8 +49,8 @@ private data class Region(
 
 private fun MutableList<Region>.join(region: Region) {
     val extra = mutableListOf<Region>()
-    this.mapNotNull { it.clip(region) }.forEach { clip ->
-        extra.add(
+    this.mapNotNull { it.clip(region) }
+        .forEach { clip ->
             Region(
                 clip.x, clip.y, clip.z, if (region.light && clip.light) {
                     false
@@ -60,9 +59,8 @@ private fun MutableList<Region>.join(region: Region) {
                 } else {
                     region.light
                 }
-            )
-        )
-    }
+            ).apply(extra::add)
+        }
     if (region.light) {
         add(region)
     }
@@ -73,7 +71,8 @@ private fun getRegions(input: List<String>): List<Region> {
     return input.map { str ->
         val on = str.startsWith("on")
         val value = str.drop(if (on) 3 else 4).split(",").map {
-            it.drop(2).split("..").map(String::toInt)
+            val list = it.drop(2).split("..").map(String::toInt)
+            IntRange(list[0], list[1])
         }
         Region(value[0], value[1], value[2], on)
     }
